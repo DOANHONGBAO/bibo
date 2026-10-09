@@ -1,0 +1,205 @@
+BIBO — YÊU CẦU DỰ ÁN PERSONAL RESEARCH MEMORY AGENT
+Phiên bản: 0.1 (khởi tạo) | Ngôn ngữ: tiếng Việt | Trạng thái: kế hoạch, chưa triển khai
+
+A. TỔNG QUAN DỰ ÁN
+
+BIBO là trợ lý ghi nhớ nghiên cứu cá nhân, giúp người nghiên cứu lưu giữ nguồn, ý tưởng, giả thuyết, thí nghiệm, quyết định và diễn tiến của từng dự án; tìm lại thông tin bằng tiếng Việt hoặc tiếng Anh; trả lời câu hỏi có dẫn chứng.
+
+Vấn đề: tài liệu và ghi chú phân tán; khó tìm lại lý do của quyết định cũ; ý tưởng chưa kiểm chứng dễ bị nhầm thành kết luận; câu trả lời thiếu nguồn; thông tin thay đổi theo thời gian nhưng không có lịch sử rõ ràng.
+
+Người dùng mục tiêu: nhà nghiên cứu cá nhân, học viên cao học, nhóm nghiên cứu nhỏ quản lý tri thức theo dự án. Bản đầu ưu tiên một người dùng chạy cục bộ; cộng tác nhiều người nằm ngoài MVP.
+
+Năng lực dự kiến: quản lý dự án và tài liệu, trích xuất và tìm kiếm ngữ nghĩa đa ngôn ngữ, ghi nhớ có nguồn gốc và phiên bản, theo dõi giả thuyết/thí nghiệm/quyết định, dòng thời gian, hỏi đáp có trích dẫn, tích hợp MCP, xuất và sao lưu dữ liệu. Đây là phạm vi mục tiêu theo giai đoạn, không phải chức năng đã có.
+
+B. YÊU CẦU CHỨC NĂNG
+
+FR-001 | Quản lý dự án nghiên cứu | MVP
+Mô tả: Tạo, xem, cập nhật và lưu trữ dự án với tên, mô tả, trạng thái và mốc thời gian.
+Đầu vào: Thông tin dự án và lệnh quản lý.
+Đầu ra: Bản ghi dự án có mã định danh ổn định và danh sách dự án.
+Quy tắc/ràng buộc: Tên không rỗng; mọi đối tượng thuộc một dự án; lưu trữ không xóa dữ liệu liên quan.
+Tiêu chí nghiệm thu: Tạo và truy xuất được dự án theo ID; cập nhật có dấu thời gian; dự án lưu trữ không xuất hiện trong danh sách mặc định.
+
+FR-002 | Tiếp nhận tài liệu | Phase 2
+Mô tả: Nhập PDF, Markdown, TXT và DOCX vào dự án.
+Đầu vào: Tệp, loại tệp, dự án đích và siêu dữ liệu tùy chọn.
+Đầu ra: Bản ghi nguồn, mã tệp, trạng thái tiếp nhận và lỗi nếu có.
+Quy tắc/ràng buộc: Giữ nguyên tệp gốc; từ chối định dạng không hỗ trợ; tính checksum để nhận diện trùng; không tự tải tài liệu lên dịch vụ bên ngoài.
+Tiêu chí nghiệm thu: Bốn định dạng được nhận; tệp gốc không đổi; tệp lỗi được báo rõ và không tạo nguồn hoàn tất giả.
+
+FR-003 | Phân tích và chia đoạn tài liệu | Phase 2
+Mô tả: Trích văn bản, cấu trúc, vị trí trang/mục và chia thành đoạn phục vụ tìm kiếm.
+Đầu vào: Tài liệu đã tiếp nhận và cấu hình phân đoạn.
+Đầu ra: Các đoạn có thứ tự, vị trí, ID nguồn và phiên bản xử lý.
+Quy tắc/ràng buộc: Không sửa nguồn gốc; giữ liên kết đoạn–trang/mục; xử lý lại tạo phiên bản mới; báo chất lượng trích xuất thấp.
+Tiêu chí nghiệm thu: Mỗi đoạn truy được về tài liệu và vị trí; chạy lại cùng cấu hình cho kết quả xác định; tài liệu không đọc được có trạng thái lỗi.
+
+FR-004 | Tìm kiếm ngữ nghĩa đa ngôn ngữ | Phase 2
+Mô tả: Tìm đoạn liên quan bằng truy vấn tiếng Việt hoặc tiếng Anh, kể cả khi ngôn ngữ truy vấn khác ngôn ngữ nguồn.
+Đầu vào: Truy vấn, bộ lọc dự án/nguồn, số kết quả k.
+Đầu ra: Danh sách đoạn xếp hạng kèm điểm, ngôn ngữ và dẫn chiếu.
+Quy tắc/ràng buộc: Chỉ tìm trong phạm vi được chọn; không đưa nội dung nguồn khác dự án; ghi phiên bản mô hình tạo vector.
+Tiêu chí nghiệm thu: Bộ kiểm thử song ngữ cố định đạt ngưỡng Recall@k/MRR được chốt ở Phase 6; mọi kết quả có nguồn và vị trí.
+
+FR-005 | Lưu trữ ký ức nghiên cứu | Phase 3
+Mô tả: Lưu phát biểu nghiên cứu có cấu trúc, loại ký ức, trạng thái xác minh và liên kết chứng cứ.
+Đầu vào: Nội dung, dự án, loại, chứng cứ, trạng thái và yêu cầu ghi.
+Đầu ra: Bản ghi ký ức có ID, phiên bản và lịch sử.
+Quy tắc/ràng buộc: Mọi ghi mới hoặc sửa ký ức do AI đề xuất phải được người dùng chấp thuận rõ ràng; không nâng giả thuyết thành sự thật; có thể truy vết nguồn.
+Tiêu chí nghiệm thu: Đề xuất chưa duyệt không làm đổi ký ức đang dùng; sau duyệt truy được người/thời điểm/nguồn và phiên bản.
+
+FR-006 | Ý tưởng và giả thuyết | MVP
+Mô tả: Tạo, phân loại, liên kết và theo dõi trạng thái ý tưởng/giả thuyết.
+Đầu vào: Phát biểu, bối cảnh dự án, nguồn gợi ý và trạng thái.
+Đầu ra: Bản ghi ý tưởng/giả thuyết và lịch sử trạng thái.
+Quy tắc/ràng buộc: Mặc định là chưa kiểm chứng; kết luận cần chứng cứ hoặc kết quả thí nghiệm; không hiển thị như sự thật đã xác lập.
+Tiêu chí nghiệm thu: Lọc được theo trạng thái; bản chưa kiểm chứng luôn có nhãn rõ; thay đổi trạng thái được lưu vết.
+
+FR-007 | Theo dõi thí nghiệm và kết quả | MVP
+Mô tả: Ghi câu hỏi, thiết lập, tham số, lần chạy, kết quả và diễn giải thí nghiệm.
+Đầu vào: Thiết kế thí nghiệm, thời điểm, tham số, kết quả và tệp tham chiếu.
+Đầu ra: Bản ghi thí nghiệm/lần chạy với liên kết giả thuyết và kết quả.
+Quy tắc/ràng buộc: Không sửa âm thầm kết quả cũ; phân biệt quan sát với diễn giải; tham số và đơn vị đo phải rõ.
+Tiêu chí nghiệm thu: Truy lại được từng lần chạy, tham số và kết quả gốc; sửa đổi tạo lịch sử và lý do.
+
+FR-008 | Lịch sử quyết định nghiên cứu | MVP
+Mô tả: Lưu lựa chọn, phương án thay thế, lý do, chứng cứ và hệ quả.
+Đầu vào: Quyết định, ngày hiệu lực, người ghi, lựa chọn khác và căn cứ.
+Đầu ra: Bản ghi quyết định có thể tra cứu theo dự án và thời gian.
+Quy tắc/ràng buộc: Quyết định đảo ngược được ghi thành sự kiện mới; căn cứ thiếu phải được đánh dấu.
+Tiêu chí nghiệm thu: Xem được quyết định tại một thời điểm và chuỗi thay đổi; mỗi bản ghi chỉ rõ lý do và trạng thái chứng cứ.
+
+FR-009 | Ký ức thời gian và dòng thời gian dự án | Phase 2
+Mô tả: Hợp nhất mốc tài liệu, ý tưởng, thí nghiệm, quyết định và thay đổi ký ức theo thời gian.
+Đầu vào: Khoảng thời gian, dự án, loại sự kiện.
+Đầu ra: Dòng thời gian có thứ tự và liên kết tới bản ghi gốc.
+Quy tắc/ràng buộc: Phân biệt thời điểm sự kiện với thời điểm ghi nhận; múi giờ được chuẩn hóa; sự kiện thiếu ngày được đánh dấu.
+Tiêu chí nghiệm thu: Lọc theo khoảng thời gian/loại; mỗi mốc mở được bản gốc; thứ tự ổn định khi trùng thời gian.
+
+FR-010 | Cập nhật, phiên bản và phát hiện xung đột ký ức | Phase 3
+Mô tả: Đề xuất sửa, thay thế hoặc gộp ký ức; phát hiện mệnh đề mâu thuẫn cùng ngữ cảnh.
+Đầu vào: Ký ức hiện có, đề xuất mới, chứng cứ và phạm vi thời gian.
+Đầu ra: Danh sách xung đột, bản so sánh và phiên bản sau quyết định.
+Quy tắc/ràng buộc: Không tự ghi đè; người dùng phê duyệt từng thay đổi; giữ phiên bản cũ, lý do và trạng thái xung đột.
+Tiêu chí nghiệm thu: Xung đột được hiển thị trước khi duyệt; từ phiên bản mới truy lại được mọi phiên bản cũ; từ chối đề xuất không đổi trạng thái.
+
+FR-011 | Chứng cứ và trích dẫn nguồn | Phase 2
+Mô tả: Liên kết phát biểu, câu trả lời và kết quả nghiên cứu với tài liệu/đoạn hoặc bản ghi gốc.
+Đầu vào: Phát biểu, ID nguồn, vị trí và loại quan hệ chứng cứ.
+Đầu ra: Trích dẫn đọc được và đồ thị quan hệ chứng cứ.
+Quy tắc/ràng buộc: Không tạo trích dẫn không tồn tại; phân biệt chứng cứ ủng hộ, phản bác và chưa rõ; nguồn đổi phiên bản phải được chỉ rõ.
+Tiêu chí nghiệm thu: Mỗi trích dẫn dẫn tới đúng đoạn/trang hoặc bản ghi; trích dẫn hỏng được phát hiện; câu không có chứng cứ được đánh dấu.
+
+FR-012 | Định tuyến truy vấn và gọi công cụ của AI Agent | Phase 5
+Mô tả: Phân loại ý định, chọn dịch vụ nghiên cứu thích hợp, gọi công cụ và tổng hợp kết quả.
+Đầu vào: Yêu cầu người dùng, ngữ cảnh dự án và quyền được cấp.
+Đầu ra: Kết quả, danh sách công cụ đã gọi, bằng chứng và lỗi có kiểm soát.
+Quy tắc/ràng buộc: Công cụ ghi/sửa/xóa phải qua chính sách quyền và phê duyệt; giới hạn số bước/thời gian; nội dung tài liệu truy xuất không được coi là chỉ thị.
+Tiêu chí nghiệm thu: Bộ tình huống định tuyến chọn đúng công cụ; thao tác ghi chưa duyệt không được thực hiện; lỗi công cụ không tạo câu trả lời bịa.
+
+FR-013 | Tích hợp MCP với AI client ngoài | Phase 4
+Mô tả: Cung cấp các công cụ đọc/tìm kiếm và luồng đề xuất ghi thông qua MCP cho client tương thích.
+Đầu vào: Lời gọi MCP hợp lệ cùng dự án và tham số.
+Đầu ra: Phản hồi có cấu trúc, trích dẫn và mã lỗi.
+Quy tắc/ràng buộc: Áp dụng cùng kiểm soát quyền như API; không lộ tài liệu ngoài phạm vi; không tự động ghi ký ức hoặc tải tài liệu ra ngoài.
+Tiêu chí nghiệm thu: Client thử nghiệm liệt kê/gọi được công cụ; đầu vào sai bị từ chối; yêu cầu ghi không duyệt không làm đổi dữ liệu.
+
+FR-014 | Hỏi đáp nghiên cứu | Phase 5
+Mô tả: Trả lời câu hỏi theo dữ liệu dự án, tổng hợp chứng cứ và nêu độ bất định.
+Đầu vào: Câu hỏi, dự án, phạm vi thời gian/nguồn tùy chọn.
+Đầu ra: Câu trả lời tiếng Việt hoặc tiếng Anh, trích dẫn từng luận điểm quan trọng và mức độ chắc chắn.
+Quy tắc/ràng buộc: Không suy diễn thông tin thiếu thành sự thật; chỉ dùng nguồn được phép; nêu rõ khi không đủ chứng cứ hoặc nguồn mâu thuẫn.
+Tiêu chí nghiệm thu: Bộ câu hỏi mẫu kiểm được nguồn của từng luận điểm; câu hỏi không có dữ liệu nhận câu trả lời thừa nhận thiếu dữ liệu.
+
+FR-015 | Xuất dữ liệu và sao lưu | Phase 2
+Mô tả: Xuất dữ liệu có cấu trúc và tạo/khôi phục bản sao lưu cục bộ.
+Đầu vào: Dự án, định dạng xuất, vị trí đích và yêu cầu sao lưu/khôi phục.
+Đầu ra: Gói xuất, manifest phiên bản/checksum và báo cáo xác minh.
+Quy tắc/ràng buộc: Xuất theo phạm vi người dùng chọn; không gửi ra ngoài; khôi phục có xác nhận rõ ràng khi ghi đè; không đưa bí mật vào gói.
+Tiêu chí nghiệm thu: Xuất rồi nhập vào bản cài thử giữ ID/liên kết/phiên bản; checksum sai được báo; khôi phục ghi đè không chạy khi chưa duyệt.
+
+C. YÊU CẦU PHI CHỨC NĂNG
+
+NFR-001 | Hiệu năng | Trên bộ dữ liệu thử và máy tham chiếu được công bố ở Phase 6, p95 truy vấn tìm kiếm k=10 ≤ 2 giây và p95 hỏi đáp ≤ 15 giây, không tính thời gian tải mô hình lần đầu. Đo riêng thời gian trích xuất tài liệu, tạo vector và LLM.
+NFR-002 | Độ tin cậy | Tác vụ nhập/xử lý lỗi có trạng thái và thông báo có thể thử lại; chạy lại không tạo bản ghi trùng; dịch vụ khởi động lại không mất tác vụ đã hoàn tất.
+NFR-003 | Toàn vẹn dữ liệu | Khóa ngoại, giao dịch cho thao tác nhiều bảng, checksum tài liệu gốc và bản sao lưu; kiểm thử khôi phục xác nhận số lượng bản ghi và liên kết.
+NFR-004 | Bảo mật và riêng tư | Mặc định xử lý cục bộ; bí mật chỉ từ biến môi trường; không ghi nội dung nhạy cảm vào log; kiểm soát quyền theo dự án; mọi truyền dữ liệu tới dịch vụ ngoài cần cấu hình và chấp thuận rõ.
+NFR-005 | Bảo trì | Phân lớp và giao diện rõ; định dạng/kiểm tra tĩnh tự động; thay đổi lược đồ qua migration; tài liệu yêu cầu/kiến trúc được cập nhật cùng thay đổi hành vi.
+NFR-006 | Mở rộng | Có thể thay mô hình embedding, LLM và kho vector qua adapter mà không đổi logic nghiệp vụ; kiểm thử hợp đồng cho adapter.
+NFR-007 | Ghi log và quan sát | Log có thời gian, request ID, tên thao tác, trạng thái và thời lượng; không ghi khóa hay toàn văn tài liệu; có chỉ số lỗi và độ trễ theo dịch vụ.
+NFR-008 | Kiểm thử | Mỗi module triển khai có kiểm thử đơn vị; luồng nhập–tìm–dẫn chứng và phê duyệt ghi có kiểm thử tích hợp; bộ dữ liệu đánh giá cố định và không chứa tài liệu riêng tư.
+NFR-009 | Triển khai cục bộ | Hỗ trợ Windows cho phát triển; cấu hình và hướng dẫn khởi chạy/tắt, lưu trữ và sao lưu rõ ràng; thành phần container trong giai đoạn sau phải có kiểm tra sức khỏe.
+NFR-010 | Chất lượng truy xuất xuyên ngôn ngữ | Đánh giá riêng Việt→Việt, Anh→Anh, Việt→Anh, Anh→Việt bằng Recall@k, MRR, nDCG; ngưỡng chấp nhận được chốt từ tập chuẩn và baseline trước khi tối ưu.
+
+D. CÔNG NGHỆ DỰ KIẾN (CHƯA CÀI ĐẶT)
+
+Python 3.11: ngôn ngữ lõi, cần cho MVP.
+FastAPI: API HTTP cho dữ liệu nghiên cứu, cần cho MVP.
+Pydantic: xác thực đầu vào/đầu ra và cấu hình, cần cho MVP.
+PostgreSQL: dữ liệu quan hệ và giao dịch, cần cho MVP.
+SQLAlchemy: lớp truy cập dữ liệu, cần cho MVP.
+Alembic: quản lý migration, cần cho MVP.
+Pytest: kiểm thử tự động, cần cho MVP.
+pgvector: lưu/tìm vector trong PostgreSQL, dự kiến Phase 2.
+Docling: trích xuất cấu trúc PDF/DOCX, dự kiến Phase 2; parser nhẹ hơn có thể dùng cho TXT/Markdown.
+SentenceTransformers: chạy embedding cục bộ, dự kiến Phase 2.
+BGE-M3: mô hình embedding đa ngôn ngữ ứng viên, dự kiến Phase 2; phải đánh giá trên tập tiếng Việt/Anh trước khi chốt.
+Ollama: LLM chạy cục bộ, dự kiến Phase 5; API LLM bên ngoài là lựa chọn thay thế tùy chọn, chỉ bật khi được phép gửi dữ liệu.
+MCP Python SDK: công cụ/transport MCP, dự kiến Phase 4.
+LangGraph: điều phối agent nhiều bước, tùy chọn ở Phase 5 nếu luồng đơn giản tự viết không đủ.
+Docker Compose: đóng gói dịch vụ cục bộ, dự kiến giai đoạn sau; Conda phục vụ phát triển ban đầu trên Windows.
+Không cài thư viện/dịch vụ trên trong Phase 0, ngoại trừ tạo môi trường Python.
+
+E. KIẾN TRÚC HỆ THỐNG
+
+Client → MCP/API Layer → Agent Orchestrator → Research Services → Storage Layer.
+Client: giao diện hoặc AI client gửi yêu cầu, hiển thị kết quả và quyết định phê duyệt.
+MCP/API Layer: xác thực, kiểm tra tham số, quyền/phạm vi và định dạng giao thức; không chứa quy tắc nghiên cứu.
+Agent Orchestrator: chọn luồng/công cụ, quản lý ngữ cảnh ngắn hạn, giới hạn bước và phê duyệt; không truy cập kho dữ liệu trực tiếp ngoài giao diện dịch vụ.
+Research Services: nghiệp vụ dự án, tài liệu, tìm kiếm, ký ức, thí nghiệm, quyết định, chứng cứ và xuất/khôi phục; cùng quy tắc được dùng từ API lẫn MCP.
+Storage Layer: PostgreSQL, vector, tệp gốc bất biến và bản sao lưu; quản lý giao dịch, lược đồ, truy vấn và tính toàn vẹn.
+Mỗi lớp giao tiếp qua hợp đồng rõ ràng; cấu hình và adapter cô lập phụ thuộc hạ tầng.
+
+F. KIẾN TRÚC KÝ ỨC
+
+Working memory: ngữ cảnh tạm trong một phiên hỏi đáp, không tự động lưu dài hạn.
+Semantic memory: phát biểu/khái niệm đã chuẩn hóa, có trạng thái xác minh và chứng cứ.
+Episodic memory: sự kiện theo thời gian như lần chạy thí nghiệm, ghi chú và mốc quyết định.
+Procedural memory: quy trình/phương pháp nghiên cứu có phiên bản và phạm vi áp dụng.
+
+Tài liệu nguồn là bản gốc bất biến và siêu dữ liệu; ký ức nghiên cứu là phát biểu được rút ra hoặc do người dùng nhập; sự kiện nghiên cứu là việc xảy ra tại thời điểm xác định; thí nghiệm gồm thiết kế, lần chạy và kết quả; quyết định là lựa chọn có lý do và hiệu lực. Những đối tượng này giữ ID và vòng đời riêng, liên kết bằng quan hệ có kiểu, không thay thế lẫn nhau.
+
+Mọi tri thức trích xuất phải lưu provenance: ID nguồn, vị trí, phiên bản trích xuất/mô hình, thời điểm và tác nhân. Cập nhật ký ức tạo phiên bản bất biến; xung đột được đưa ra để người dùng so sánh chứng cứ và quyết định giữ, thay thế hoặc cùng tồn tại theo ngữ cảnh/thời gian. Mọi thao tác ghi/sửa ký ức do hệ thống đề xuất cần phê duyệt tường minh trước khi áp dụng. Trạng thái chưa kiểm chứng phải đi cùng phát biểu ở mọi lớp hiển thị.
+
+G. GIAI ĐOẠN PHÁT TRIỂN
+
+Phase 0 — Khởi tạo: mục tiêu lập kho Git, môi trường Python và tài liệu yêu cầu. Bàn giao README.md, .gitignore, PROJECT_REQUIREMENTS.txt và nhánh setup/initialization. Phụ thuộc: Git, GitHub, Conda. Hoàn tất khi tài liệu đủ phạm vi, môi trường Python 3.11 chạy được và trạng thái Git được xác minh; không có mã ứng dụng.
+Phase 1 — Cơ sở dữ liệu và dữ liệu nghiên cứu có cấu trúc: mục tiêu quản lý dự án, ý tưởng, thí nghiệm và quyết định. Bàn giao lược đồ, migration, API và kiểm thử cho FR-001/006/007/008. Phụ thuộc Phase 0. Hoàn tất khi luồng CRUD, quan hệ, lịch sử và tính toàn vẹn vượt kiểm thử.
+Phase 2 — Tiếp nhận và truy xuất tài liệu: mục tiêu nhập, phân đoạn, tìm kiếm đa ngôn ngữ, chứng cứ, dòng thời gian và sao lưu cơ bản. Bàn giao parser, index, API truy xuất, provenance và kiểm thử FR-002/003/004/009/011/015. Phụ thuộc Phase 1. Hoàn tất khi bốn định dạng được xử lý, kết quả có trích dẫn và đánh giá truy xuất ban đầu có baseline.
+Phase 3 — Quản lý ký ức: mục tiêu ký ức có cấu trúc, kiểm duyệt, phiên bản và xử lý xung đột. Bàn giao dịch vụ/luồng phê duyệt FR-005/010 và kiểm thử lịch sử. Phụ thuộc Phase 1–2. Hoàn tất khi ghi chưa duyệt không đổi dữ liệu và mọi phiên bản truy lại được.
+Phase 4 — Tích hợp MCP: mục tiêu cho client ngoài dùng công cụ nghiên cứu an toàn. Bàn giao MCP server, hợp đồng công cụ và kiểm thử FR-013. Phụ thuộc dịch vụ Phase 1–3. Hoàn tất khi client thử nghiệm gọi được công cụ và các chính sách quyền/phê duyệt được giữ nguyên.
+Phase 5 — Điều phối Agent: mục tiêu định tuyến và hỏi đáp có chứng cứ. Bàn giao orchestrator, chính sách gọi công cụ và kiểm thử FR-012/014. Phụ thuộc tìm kiếm, ký ức và MCP/API. Hoàn tất khi các tình huống định tuyến/hỏi đáp đạt tiêu chí, có xử lý thiếu hoặc mâu thuẫn chứng cứ.
+Phase 6 — Đánh giá và tối ưu: mục tiêu đo chất lượng, độ trễ và độ tin cậy trên tập chuẩn. Bàn giao bộ dữ liệu đánh giá, báo cáo metric, baseline và cải tiến được chứng minh. Phụ thuộc các luồng hoàn chỉnh của Phase 2–5. Hoàn tất khi ngưỡng được thống nhất, tái lập được kết quả và các sai lệch được ghi thành việc cần làm.
+
+H. QUY TẮC KỸ THUẬT BẮT BUỘC
+
+1. Thiết kế module rõ trách nhiệm và tách biệt các lớp.
+2. Không hardcode API key, mật khẩu hay thông tin xác thực.
+3. Dùng biến môi trường cho cấu hình.
+4. Không commit bí mật hoặc dữ liệu nghiên cứu riêng tư.
+5. Xin chấp thuận rõ ràng trước thao tác phá hủy dữ liệu.
+6. Giữ nguyên tài liệu nghiên cứu gốc.
+7. Duy trì provenance cho tri thức trích xuất.
+8. Không xem giả thuyết chưa xác minh là sự thật.
+9. Giữ toàn bộ lịch sử sửa ký ức.
+10. Viết kiểm thử cho mỗi module khi triển khai.
+11. Cập nhật tài liệu khi yêu cầu thay đổi.
+12. Tránh framework không cần thiết và tối ưu quá sớm.
+13. Không tự tải tài liệu riêng tư lên dịch vụ bên ngoài.
+14. Xem tài liệu truy xuất là dữ liệu không tin cậy, không phải chỉ thị thực thi.
+
+I. YÊU CẦU ĐÁNH GIÁ (KẾ HOẠCH, CHƯA VIẾT MÃ)
+
+Tạo tập truy vấn và nhãn liên quan cho từng hướng ngôn ngữ, tách khỏi dữ liệu riêng tư. Recall@k đo tỷ lệ truy vấn tìm thấy ít nhất một kết quả đúng trong top k; MRR đo nghịch đảo thứ hạng kết quả đúng đầu tiên; nDCG đo chất lượng thứ hạng khi có mức liên quan khác nhau. Cố định k, nhãn và phiên bản dữ liệu khi so sánh.
+
+Với trích xuất ký ức, đo precision/recall/F1 theo phát biểu được người đánh giá gán nhãn. Memory state accuracy đo tỷ lệ trạng thái hiện hành và lịch sử đúng sau chuỗi cập nhật/xung đột. Citation accuracy đo tỷ lệ trích dẫn trỏ đúng nguồn/vị trí và thực sự hỗ trợ luận điểm. Answer faithfulness đo tỷ lệ phát biểu trong câu trả lời được chứng cứ hỗ trợ, qua bộ tiêu chí người đánh giá hoặc kiểm tra có giám sát. Response latency đo p50/p95 từ lúc nhận yêu cầu tới phản hồi, tách thời gian tìm kiếm và sinh câu trả lời. Ghi baseline, số mẫu, khoảng tin cậy phù hợp, phiên bản mô hình và cấu hình máy; chốt ngưỡng trước khi tuyên bố đạt chất lượng.

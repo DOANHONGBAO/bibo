@@ -1,0 +1,47 @@
+# Python and tooling
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Local environments and configuration
+.venv/
+venv/
+env/
+conda-env/
+.conda/
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*credentials*
+*secrets*
+
+# Local data, generated artifacts and private research material
+data/
+datasets/
+uploads/
+exports/
+backups/
+artifacts/
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+tmp/
+temp/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

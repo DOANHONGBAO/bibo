@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bibo"
+version = "0.1.0"
+description = "Local multilingual research document retrieval"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "PyMuPDF==1.28.2",
+    "sentence-transformers==5.7.0",
+    "chromadb==1.5.9",
+    "tqdm==4.70.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.1.1"]
+
+[project.scripts]
+bibo = "bibo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

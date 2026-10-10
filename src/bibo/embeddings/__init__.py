@@ -1,0 +1,1 @@
+"""Dense text embeddings."""

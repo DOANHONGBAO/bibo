@@ -27,6 +27,13 @@ conda-env/
 
 # Local data, generated artifacts and private research material
 data/
+!data/
+data/*
+!data/.gitkeep
+documents/
+!documents/
+documents/*
+!documents/.gitkeep
 datasets/
 uploads/
 exports/

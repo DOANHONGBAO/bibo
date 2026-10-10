@@ -7,7 +7,8 @@ BIBO là dự án xây dựng trợ lý ghi nhớ và truy xuất tri thức ngh
 ```text
 Tệp PDF/TXT/Markdown → Parser → Chunker → BGE-M3 → ChromaDB (data/chroma)
 Truy vấn Việt/Anh ─────────────────→ BGE-M3 → Tìm top-k → Đoạn gốc + nguồn
-                                     CLI: ingest, ingest-dir, search, list, stats, remove
+                         CLI: prepare-model, ingest, ingest-dir, search,
+                              interactive, benchmark, list, stats, remove
 ```
 
 Parser giữ số trang PDF và đường dẫn nguồn; chunker không trộn các trang PDF. `vector_store.py` là lớp duy nhất gọi ChromaDB. Tệp gốc không bị sửa hoặc xóa. Cùng một mô hình BGE-M3 mã hóa tài liệu và truy vấn thành vector 1024 chiều chuẩn hóa; Chroma dùng khoảng cách cosine, còn CLI hiển thị `1 - distance` như cosine similarity.
@@ -39,7 +40,16 @@ $BiboPython = Join-Path $env:USERPROFILE ".conda\envs\bibo\python.exe"
 & $BiboPython -m bibo.cli ingest-dir "documents"
 ```
 
-Đường dẫn môi trường trên là vị trí Conda hiện dùng trên máy này; nếu bạn tạo môi trường ở nơi khác, thay bằng đường dẫn `python.exe` của môi trường đó. Có thể chạy `conda init powershell` rồi **mở lại PowerShell** để kích hoạt tự động trong các phiên sau, hoặc dùng Anaconda Prompt. Nếu môi trường chưa có, chạy `conda create -n bibo python=3.11 -y` trước. Lần đầu nhập hoặc tìm kiếm, SentenceTransformers sẽ tải `BAAI/bge-m3` về `data/model_cache`; cần mạng và đủ dung lượng. Sau khi đã tải, mô hình chạy cục bộ, tự chọn CUDA nếu khả dụng và dùng CPU nếu không. Không cần khóa API hay gửi tài liệu tới dịch vụ ngoài.
+Đường dẫn môi trường trên là vị trí Conda hiện dùng trên máy này; nếu bạn tạo môi trường ở nơi khác, thay bằng đường dẫn `python.exe` của môi trường đó. Có thể chạy `conda init powershell` rồi **mở lại PowerShell** để kích hoạt tự động trong các phiên sau, hoặc dùng Anaconda Prompt. Nếu môi trường chưa có, chạy `conda create -n bibo python=3.11 -y` trước. Không cần khóa API hay gửi tài liệu tới dịch vụ ngoài.
+
+### Chuẩn bị mô hình một lần
+
+```powershell
+python -m bibo.cli prepare-model
+python -m bibo.cli prepare-model --offline
+```
+
+Lệnh đầu tải BGE-M3 công khai khi cache chưa đủ; lần đầu cần mạng và khoảng vài GB dung lượng. Nếu mô hình đã có, lệnh chỉ xác minh cache. Lệnh `--offline` tuyệt đối không tải. Các lệnh nhập và tìm kiếm chỉ nạp từ đường dẫn local đã xác minh, nên không phát sinh yêu cầu metadata Hugging Face mỗi lần chạy. Mặc định mô hình ở `data/model_cache/`; có thể đặt `BIBO_MODEL_CACHE` hoặc trỏ `BIBO_MODEL_DIR` tới thư mục mô hình hoàn chỉnh. Nếu cache chưa đủ, BIBO báo cần chạy `prepare-model`; không tự tải trong lúc truy vấn.
 
 ## Sử dụng
 
@@ -50,12 +60,17 @@ python -m bibo.cli ingest "documents\paper.pdf"
 python -m bibo.cli ingest-dir "documents"
 python -m bibo.cli search "Các phương pháp giảm false positive" --top-k 5
 python -m bibo.cli search "How can false positives be reduced?"
+python -m bibo.cli interactive --top-k 5
 python -m bibo.cli list
 python -m bibo.cli stats
 python -m bibo.cli remove DOCUMENT_ID
 ```
 
-`ingest-dir` tìm đệ quy và bỏ qua loại tệp không hỗ trợ. Cùng nội dung tệp (SHA-256) nhập lại sẽ không tạo thêm chunk. `remove` yêu cầu xác nhận; dùng `--yes` trong script. Lệnh này chỉ xóa chỉ mục, không xóa tệp nguồn.
+Trong `interactive`, gõ nhiều câu hỏi rồi `exit` hoặc `quit` để thoát. Mô hình và ChromaDB chỉ được mở một lần cho phiên đó; lệnh `search` chạy riêng vẫn phải nạp mô hình trong tiến trình mới.
+
+`ingest-dir` tìm đệ quy và bỏ qua loại tệp không hỗ trợ. Cùng nội dung tệp (SHA-256) đã hoàn tất sẽ được **bỏ qua trước khi đọc PDF hoặc tạo embedding**. Nếu lần trước ghi dở, BIBO chỉ bổ sung chunk còn thiếu và giữ các vector đã có. PDF đã phân tích được lưu cache cục bộ theo hash tệp, phiên bản parser và cấu hình. Khi nội dung tệp đổi, hash/ID mới được lập chỉ mục riêng; bản cũ còn lại để người dùng xem và xóa thủ công. `remove` yêu cầu xác nhận; dùng `--yes` trong script. Lệnh này chỉ xóa chỉ mục, không xóa tệp nguồn.
+
+Cache văn bản PDF trích xuất, vector và trọng số mô hình đều ở thư mục cục bộ được Git bỏ qua. Không đưa `data/`, `models/` hoặc `documents/` lên GitHub.
 
 Ví dụ đầu ra tìm kiếm (điểm chỉ minh họa):
 
@@ -74,11 +89,28 @@ Biến môi trường tùy chọn:
 | --- | --- | --- |
 | `BIBO_DATA_DIR` | `data/` trong dự án | Nơi lưu ChromaDB và cache mặc định |
 | `BIBO_MODEL_CACHE` | `data/model_cache/` | Cache mô hình tải về |
+| `BIBO_MODEL_DIR` | Không đặt | Thư mục mô hình hoàn chỉnh dùng trực tiếp, không truy cập mạng |
 | `BIBO_CHUNK_SIZE_WORDS` | `500` | Số **từ** tối đa gần đúng mỗi đoạn |
 | `BIBO_CHUNK_OVERLAP_WORDS` | `75` | Số **từ** lặp giữa hai đoạn |
-| `BIBO_BATCH_SIZE` | `16` | Số đoạn cho mỗi batch embedding và ghi chỉ mục |
+| `BIBO_BATCH_SIZE` | `4` | Số đoạn cho mỗi batch embedding và ghi chỉ mục |
 
 Chunker dùng chuỗi không phải khoảng trắng làm đơn vị **từ**, không dùng tokenizer nên các giá trị 500/75 **không phải token**. Nó ưu tiên ngắt ở cuối đoạn/câu gần giới hạn, giữ thứ tự và vùng lặp; mỗi trang PDF được xử lý riêng. Mô hình, số chiều và cấu hình chia đoạn được ghi trong collection; nếu thay cấu hình trên chỉ mục cũ, chương trình báo lỗi. Dùng một `BIBO_DATA_DIR` khác hoặc cấu hình ban đầu để tránh trộn chỉ mục.
+
+Batch 4 là mặc định đo được nhanh nhất trên máy CPU hiện tại cho PDF kiểm thử 16 đoạn; `BIBO_BATCH_SIZE` có thể điều chỉnh theo máy. Batch size không làm thay đổi lược đồ chỉ mục. BIBO đếm token thực trước khi mã hóa và báo lỗi nếu một chunk vượt giới hạn mô hình; nó không tự cắt bỏ nội dung nguồn.
+
+## Đo hiệu năng
+
+```powershell
+python -m bibo.cli ingest "documents\paper.pdf" --profile
+python -m bibo.cli search "research question" --profile
+python -m bibo.cli interactive --profile
+python -m bibo.cli benchmark
+python -m bibo.cli benchmark --document "documents\paper.pdf"
+```
+
+`benchmark` mặc định tạo PDF tổng hợp cố định; có thể chọn PDF cục bộ để đo tải thực tế. Lệnh đo hash, đọc PDF, cache, chia đoạn, token hóa, tải mô hình, các batch 4/8/16, ghi Chroma, truy vấn đầu/ấm và một lệnh tìm kiếm mới. Báo cáo JSON nằm ở `benchmarks/results/` và không được commit; không chứa văn bản tài liệu. Lệnh dùng chỉ mục riêng trong `data/benchmark_runs/`, có lưu bản sao đoạn văn cục bộ để tái kiểm tra và không sửa chỉ mục nghiên cứu. GPU/FP16 chỉ được đánh giá khi PyTorch phát hiện CUDA phù hợp.
+
+Phương pháp và kết quả trên máy hiện tại: [benchmarks/README.md](benchmarks/README.md).
 
 ## Kiểm thử
 

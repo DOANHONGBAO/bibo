@@ -15,9 +15,10 @@ class Settings:
     model_cache: Path
     chunk_size_words: int = 500
     chunk_overlap_words: int = 75
-    batch_size: int = 16
+    batch_size: int = 4
     model_id: str = MODEL_ID
     embedding_dimension: int = EMBEDDING_DIMENSION
+    model_dir: Path | None = None
 
     def __post_init__(self) -> None:
         if self.chunk_size_words < 1:
@@ -39,5 +40,7 @@ class Settings:
             model_cache=cache,
             chunk_size_words=int(os.getenv("BIBO_CHUNK_SIZE_WORDS", "500")),
             chunk_overlap_words=int(os.getenv("BIBO_CHUNK_OVERLAP_WORDS", "75")),
-            batch_size=int(os.getenv("BIBO_BATCH_SIZE", "16")),
+            batch_size=int(os.getenv("BIBO_BATCH_SIZE", "4")),
+            model_dir=Path(os.environ["BIBO_MODEL_DIR"]).expanduser()
+            if os.getenv("BIBO_MODEL_DIR") else None,
         )

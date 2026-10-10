@@ -1,9 +1,12 @@
 from pathlib import Path
 
-import fitz
+import pymupdf
 import pytest
 
 from bibo.ingestion.pipeline import ingest_document, supported_files
+from bibo.ingestion.chunker import chunk_pages
+from bibo.ingestion.parser import parse_document
+from bibo.ingestion.pipeline import file_sha256
 from bibo.retrieval.search import search_passages
 from bibo.storage.vector_store import VectorStore
 
@@ -90,7 +93,7 @@ def test_synthetic_bilingual_pipeline_persists(tmp_path, settings):
 
 def test_pdf_ingestion_keeps_page_metadata(tmp_path, settings, fake_encoder):
     path = tmp_path / "paper.pdf"
-    pdf = fitz.open()
+    pdf = pymupdf.open()
     for text in ("Methods for reducing false positives", "Results from a second page"):
         page = pdf.new_page()
         page.insert_text((72, 72), text)
@@ -130,3 +133,46 @@ def test_failed_batch_rolls_back_for_retry(tmp_path, settings, fake_encoder,
     result = ingest_document(path, settings=settings, store=store,
                              encoder=fake_encoder, progress=False)
     assert store.count() == result.chunk_count
+
+
+def test_partial_index_repair_preserves_existing_chunks(tmp_path, settings, fake_encoder):
+    source = tmp_path / "partial.txt"
+    source.write_text(" ".join(f"word{i}" for i in range(30)), encoding="utf-8")
+    file_hash = file_sha256(source)
+    chunks = chunk_pages(parse_document(source), document_id=file_hash,
+                         filename=source.name, source_path=str(source.resolve()),
+                         file_hash=file_hash, size_words=settings.chunk_size_words,
+                         overlap_words=settings.chunk_overlap_words)
+    store = VectorStore(settings)
+    store.add_document(chunks[:1], fake_encoder.encode([chunks[0].content]),
+                       batch_size=1, progress=False, total_chunks=len(chunks))
+    assert store.document_state(file_hash).count == 1
+    assert not store.document_complete(file_hash)
+    encoded_counts = []
+
+    class CountingEncoder:
+        def encode(self, texts):
+            encoded_counts.append(len(texts))
+            return fake_encoder.encode(texts)
+
+    result = ingest_document(source, settings=settings, store=store,
+                             encoder=CountingEncoder(), progress=False)
+    assert result.repaired and not result.duplicate
+    assert encoded_counts == [len(chunks) - 1]
+    assert store.document_complete(file_hash)
+    assert store.count() == len(chunks)
+    assert chunks[0].chunk_id in store.document_state(file_hash).ids
+
+
+def test_changed_file_gets_new_id_without_deleting_old(tmp_path, settings, fake_encoder):
+    source = tmp_path / "evolving.txt"
+    source.write_text("first version research evidence", encoding="utf-8")
+    store = VectorStore(settings)
+    first = ingest_document(source, settings=settings, store=store,
+                            encoder=fake_encoder, progress=False)
+    source.write_text("second version revised evidence", encoding="utf-8")
+    second = ingest_document(source, settings=settings, store=store,
+                             encoder=fake_encoder, progress=False)
+    assert second.changed and second.document_id != first.document_id
+    assert store.document_complete(first.document_id)
+    assert store.document_complete(second.document_id)

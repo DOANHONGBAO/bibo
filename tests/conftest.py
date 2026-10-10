@@ -11,6 +11,7 @@ from bibo.config import Settings
 class FakeEncoder:
     def __init__(self, dimension: int) -> None:
         self.dimension = dimension
+        self.device = "cpu"
 
     def encode(self, texts: list[str]) -> list[list[float]]:
         vectors = []

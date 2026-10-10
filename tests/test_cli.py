@@ -27,3 +27,26 @@ def test_cli_rejects_empty_query_and_missing_path(settings, monkeypatch, capsys)
     monkeypatch.setattr(cli.Settings, "from_env", lambda: settings)
     assert cli.main(["search", " "]) == 1
     assert cli.main(["ingest", "missing.txt"]) == 1
+
+
+def test_interactive_reuses_one_encoder(settings, fake_encoder, tmp_path,
+                                        monkeypatch, capsys):
+    source = tmp_path / "note.txt"
+    source.write_text("retrieval evidence for research", encoding="utf-8")
+    store = VectorStore(settings)
+    ingest_document(source, settings=settings, store=store,
+                    encoder=fake_encoder, progress=False)
+    monkeypatch.setattr(cli.Settings, "from_env", lambda: settings)
+    loads = []
+
+    def get_encoder(*args):
+        loads.append(True)
+        return fake_encoder
+
+    monkeypatch.setattr(cli, "load_encoder", get_encoder)
+    queries = iter(["research", "evidence", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(queries))
+    assert cli.main(["interactive", "--top-k", "1"]) == 0
+    output = capsys.readouterr().out
+    assert output.count("Rank 1") == 2
+    assert len(loads) == 1

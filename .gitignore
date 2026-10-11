@@ -30,6 +30,8 @@ data/
 !data/
 data/*
 !data/.gitkeep
+models/
+benchmarks/results/
 documents/
 !documents/
 documents/*
